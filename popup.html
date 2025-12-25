@@ -13,7 +13,7 @@
     }
 
     body {
-      width: 350px;
+      width: 360px;
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -49,7 +49,7 @@
     }
 
     .form-group { margin-bottom: 12px; }
-    label { font-size: 11px; font-weight: 600; color: #555; margin-bottom: 8px; display: block;}
+    label { font-size: 11px; font-weight: 600; color: #555; margin-bottom: 5px; display: block;}
 
     /* Toggle Group */
     .toggle-container {
@@ -77,6 +77,11 @@
       color: var(--primary-color);
       box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
+    
+    .row {
+        display: flex;
+        gap: 10px;
+    }
 
     select {
       width: 100%;
@@ -84,7 +89,7 @@
       border: 1px solid #ced4da;
       border-radius: 4px;
       font-size: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 0;
     }
 
     button {
@@ -114,6 +119,9 @@
     }
     .success { background: #d4edda; color: #155724; }
     .error { background: #f8d7da; color: #721c24; }
+    
+    /* Helper text */
+    .helper { font-size: 10px; color: #888; margin-top: 2px;}
   </style>
 </head>
 <body>
@@ -122,7 +130,7 @@
       <h1>IPD Auto Filler</h1>
     </div>
 
-    <!-- Mode Pengisian & Dropdown -->
+    <!-- Mode Pengisian -->
     <div class="card">
       <label>Mode Target & Tampilan:</label>
       <div class="toggle-container" id="modeToggle">
@@ -131,10 +139,24 @@
         <div class="toggle-option" data-value="both">Semua</div>
       </div>
 
+      <!-- Dropdown Dosen -->
       <div class="form-group">
+        <label>Pilih Data:</label>
         <select id="lecturerSelect" disabled>
           <option>Memuat data...</option>
         </select>
+      </div>
+
+      <!-- Gender Selector (Hanya muncul di mode Dosen/Both) -->
+      <div class="form-group" id="genderGroup">
+          <label>Gender Dosen (Untuk sapaan Pak/Bu):</label>
+          <div class="row">
+              <select id="genderSelect" style="flex: 1;">
+                  <option value="Bapak">Bapak</option>
+                  <option value="Ibu">Ibu</option>
+              </select>
+          </div>
+          <div class="helper">*Pilih manual agar sapaan di komentar sopan.</div>
       </div>
 
       <button id="fillBtn">✨ Isi Kuesioner (Sangat Baik)</button>

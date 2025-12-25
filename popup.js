@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const selectEl = document.getElementById('lecturerSelect');
+    const genderSelect = document.getElementById('genderSelect');
+    const genderGroup = document.getElementById('genderGroup');
     const toggleOptions = document.querySelectorAll('.toggle-option');
+    
     let currentMode = 'dosen'; // Default
     let rawOptions = []; 
   
@@ -13,9 +16,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Logic Update
             currentMode = opt.getAttribute('data-value');
+            updateUIState();
             renderDropdown();
         });
     });
+
+    function updateUIState() {
+        if (currentMode === 'matkul') {
+            genderGroup.style.display = 'none';
+        } else {
+            genderGroup.style.display = 'block';
+        }
+    }
 
     // 2. Get Data
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -86,16 +98,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function handleAction(actionType) {
         let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-        // Determine what to fill based on Mode
         const fillLecturer = (currentMode === 'dosen' || currentMode === 'both');
         const fillCourse = (currentMode === 'matkul' || currentMode === 'both');
+        const genderSapaan = genderSelect.value; // "Bapak" atau "Ibu"
 
         if (tab) {
             chrome.tabs.sendMessage(tab.id, { 
                 action: actionType,
                 config: {
                     fillLecturer: fillLecturer,
-                    fillCourse: fillCourse
+                    fillCourse: fillCourse,
+                    gender: genderSapaan
                 }
             }, (response) => {
                if (chrome.runtime.lastError) {
@@ -113,4 +126,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         el.className = isSuccess ? 'success' : 'error';
         el.style.display = 'block';
     }
-  });
+});

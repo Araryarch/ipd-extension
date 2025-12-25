@@ -1,52 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
+  <title>IPD Auto Filler</title>
   <style>
+    :root {
+      --primary-color: #013880; /* ITS Blue ish */
+      --primary-hover: #00265a;
+      --accent-color: #f7b500; /* ITS Yellow ish */
+      --bg-color: #f8f9fa;
+      --text-color: #212529;
+      --card-bg: #ffffff;
+    }
+
     body {
-      width: 300px;
-      padding: 15px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f4f9;
+      width: 320px;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
     }
-    h2 {
+
+    .container {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      width: 100%;
       text-align: center;
-      color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 15px;
     }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--primary-color);
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      font-size: 12px;
+      color: #6c757d;
+      margin: 5px 0 0 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 4px;
+      width: 100%;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
     button {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background-color: #0056b3;
-      color: white;
+      padding: 12px 16px;
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #004494;
-    }
-    .secondary {
-      background-color: #6c757d;
-    }
-    .secondary:hover {
-      background-color: #5a6268;
-    }
-    #status {
-      margin-top: 15px;
+      border-radius: 8px;
       font-size: 14px;
-      color: #555;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:last-child {
+      margin-bottom: 0;
+    }
+
+    #fillBtn {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+      color: white;
+      box-shadow: 0 4px 6px rgba(1, 56, 128, 0.2);
+    }
+
+    #fillBtn:hover {
+      background: linear-gradient(135deg, var(--primary-hover) 0%, #004494 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 10px rgba(1, 56, 128, 0.25);
+    }
+
+    #fillBtn:active {
+      transform: translateY(1px);
+    }
+
+    #fillRandomBtn {
+      background-color: white;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+
+    #fillRandomBtn:hover {
+      background-color: #f8f9fa;
+      border-color: #cdd4da;
+      color: #212529;
+    }
+
+    .status-container {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      display: none;
+    }
+
+    .status-success {
+      background-color: #d4edda;
+      color: #155724;
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .status-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 11px;
+      color: #adb5bd;
       text-align: center;
     }
   </style>
 </head>
 <body>
-  <h2>IPD ITS Auto Filler</h2>
-  <button id="fillBtn">Isi Semua (Sangat Baik)</button>
-  <button id="fillRandomBtn" class="secondary">Isi Acak (Baik/Sangat Baik)</button>
-  <div id="status">Siap digunakan</div>
+  <div class="container">
+    <div class="header">
+      <h1>IPD Auto Filler</h1>
+      <p class="subtitle">Otomatisasi Kuesioner Akademik ITS</p>
+    </div>
+
+    <div class="card">
+      <div style="padding: 15px;">
+        <button id="fillBtn">
+          <span>✨</span> Isi Kuesioner (Sangat Baik)
+        </button>
+        <button id="fillRandomBtn">
+          <span>🎲</span> Isi Acak (Baik - Sangat Baik)
+        </button>
+      </div>
+    </div>
+
+    <div id="status" class="status-container"></div>
+
+    <div class="footer">
+      Powered by Antigravity
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>

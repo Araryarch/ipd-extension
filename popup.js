@@ -1,27 +1,42 @@
 document.getElementById('fillBtn').addEventListener('click', async () => {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    handleAction('fill_max');
+  });
   
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'fill_max' }, (response) => {
-      if (chrome.runtime.lastError) {
-        document.getElementById('status').innerText = 'Error: Refresh halaman dulu.';
-      } else {
-        document.getElementById('status').innerText = response?.status || 'Selesai!';
-      }
-    });
-  }
-});
+  document.getElementById('fillRandomBtn').addEventListener('click', async () => {
+    handleAction('fill_random');
+  });
+  
+  async function handleAction(actionType) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.style.display = 'none';
+    statusDiv.className = 'status-container';
+  
+    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (tab) {
+        // Cek apakah url sesuai target secara kasar (optional, content script sudah limit di manifest)
+        if (!tab.url.includes("akademik.its.ac.id")) {
+             showStatus("Gunakan extension ini di halaman Akademik ITS.", false);
+             return;
+        }
 
-document.getElementById('fillRandomBtn').addEventListener('click', async () => {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'fill_random' }, (response) => {
-      if (chrome.runtime.lastError) {
-        document.getElementById('status').innerText = 'Error: Refresh halaman dulu.';
-      } else {
-        document.getElementById('status').innerText = response?.status || 'Selesai!';
-      }
-    });
+      chrome.tabs.sendMessage(tab.id, { action: actionType }, (response) => {
+        if (chrome.runtime.lastError) {
+          // Biasanya terjadi jika content script belum load (perlu refresh)
+          showStatus('Gagal: Silakan refresh halaman ini terlebih dahulu.', false);
+        } else {
+          showStatus(response?.status || 'Selesai!', true);
+        }
+      });
+    } else {
+        showStatus("Tab tidak ditemukan.", false);
+    }
   }
-});
+  
+  function showStatus(message, isSuccess) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerText = message;
+    statusDiv.className = isSuccess ? 'status-container status-success' : 'status-container status-error';
+    statusDiv.style.display = 'block';
+  }
+  

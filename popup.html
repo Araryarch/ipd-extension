@@ -6,7 +6,6 @@
   <style>
     :root {
       --primary-color: #013880;
-      --primary-hover: #00265a;
       --accent-color: #f7b500;
       --bg-color: #f8f9fa;
       --text-color: #212529;
@@ -14,10 +13,10 @@
     }
 
     body {
-      width: 340px;
+      width: 350px;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
     }
@@ -26,111 +25,95 @@
       padding: 15px;
       display: flex;
       flex-direction: column;
-      align-items: center;
     }
 
     .header {
-      width: 100%;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 5px;
       border-bottom: 2px solid #e9ecef;
       padding-bottom: 15px;
     }
 
     h1 {
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 18px;
       margin: 0;
       color: var(--primary-color);
     }
-
+    
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 15px;
-      width: 100%;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      box-sizing: border-box;
-      margin-bottom: 15px;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-    .form-group {
-      margin-bottom: 15px;
-      text-align: left;
-    }
+    .form-group { margin-bottom: 12px; }
+    label { font-size: 11px; font-weight: 600; color: #555; margin-bottom: 8px; display: block;}
 
-    label {
-      font-size: 12px;
+    /* Toggle Group */
+    .toggle-container {
+      display: flex;
+      background: #e9ecef;
+      border-radius: 6px;
+      padding: 2px;
+      margin-bottom: 10px;
+    }
+    
+    .toggle-option {
+      flex: 1;
+      text-align: center;
+      padding: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      color: #6c757d;
       font-weight: 600;
-      color: #495057;
-      margin-bottom: 5px;
-      display: block;
+    }
+
+    .toggle-option.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 
     select {
       width: 100%;
-      padding: 10px;
-      border-radius: 6px;
+      padding: 8px;
       border: 1px solid #ced4da;
-      font-size: 13px;
-      background-color: white;
-      cursor: pointer;
-      white-space: nowrap; 
-      overflow: hidden;
-      text-overflow: ellipsis; 
-      max-width: 300px;
-    }
-
-    select:disabled {
-      background-color: #e9ecef;
-      cursor: not-allowed;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 8px;
     }
 
     button {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    #fillBtn {
-      background: var(--primary-color);
-      color: white;
-    }
-    #fillBtn:hover { background: var(--primary-hover); }
+    #fillBtn { background: var(--primary-color); color: white; }
+    #fillBtn:hover { opacity: 0.9; }
+    
+    #fillRandomBtn { background: white; border: 1px solid #ddd; color: #333; }
+    #fillRandomBtn:hover { background: #f8f9fa; }
 
-    #fillRandomBtn {
-      background: white;
-      border: 1px solid #ced4da;
-      color: #495057;
-    }
-    #fillRandomBtn:hover { background: #f1f3f5; }
-
-    .status-container {
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      width: 100%;
+    #status {
+      font-size: 11px;
       text-align: center;
+      margin-top: 5px;
+      padding: 8px;
+      border-radius: 4px;
       display: none;
-      box-sizing: border-box;
     }
-    .status-success { background: #d4edda; color: #155724; display: block; }
-    .status-error { background: #f8d7da; color: #721c24; display: block; }
-
-    .footer {
-      margin-top: 10px;
-      font-size: 10px;
-      color: #ccc;
-    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
   </style>
 </head>
 <body>
@@ -139,21 +122,26 @@
       <h1>IPD Auto Filler</h1>
     </div>
 
-    <!-- Pilihan Dosen Scraped -->
+    <!-- Mode Pengisian & Dropdown -->
     <div class="card">
+      <label>Mode Target & Tampilan:</label>
+      <div class="toggle-container" id="modeToggle">
+        <div class="toggle-option active" data-value="dosen">Dosen</div>
+        <div class="toggle-option" data-value="matkul">Matkul</div>
+        <div class="toggle-option" data-value="both">Semua</div>
+      </div>
+
       <div class="form-group">
-        <label for="lecturerSelect">Pilih Dosen / Mata Kuliah:</label>
         <select id="lecturerSelect" disabled>
           <option>Memuat data...</option>
         </select>
       </div>
 
-      <button id="fillBtn">✨ Isi Semua (Sangat Baik)</button>
-      <button id="fillRandomBtn">🎲 Isi Acak (Baik/Sangat Baik)</button>
+      <button id="fillBtn">✨ Isi Kuesioner (Sangat Baik)</button>
+      <button id="fillRandomBtn">🎲 Isi Acak (Positif)</button>
     </div>
 
-    <div id="status" class="status-container"></div>
-    <div class="footer">Powered by Antigravity</div>
+    <div id="status"></div>
   </div>
   <script src="popup.js"></script>
 </body>

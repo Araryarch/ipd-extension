@@ -1,63 +1,116 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const selectEl = document.getElementById('lecturerSelect');
-  const statusEl = document.getElementById('status');
+    const selectEl = document.getElementById('lecturerSelect');
+    const toggleOptions = document.querySelectorAll('.toggle-option');
+    let currentMode = 'dosen'; // Default
+    let rawOptions = []; 
   
-  // 1. Get current tab
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  
-  if (!tab || !tab.url.includes("akademik.its.ac.id")) {
-    statusEl.innerText = "Buka halaman Kuesioner IPD ITS terlebih dahulu.";
-    statusEl.className = "status-container status-error";
-    return;
-  }
+    // 1. Setup Toggle Logic
+    toggleOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            // UI Update
+            toggleOptions.forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            
+            // Logic Update
+            currentMode = opt.getAttribute('data-value');
+            renderDropdown();
+        });
+    });
 
-  // 2. Request options from content script
-  chrome.tabs.sendMessage(tab.id, { action: 'get_options' }, (response) => {
-    if (chrome.runtime.lastError) {
-      statusEl.innerText = "Silakan refresh halaman web ini.";
-      statusEl.className = "status-container status-error";
+    // 2. Get Data
+    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab || !tab.url.includes("akademik.its.ac.id")) {
+      showStatus("Buka halaman Kuesioner IPD ITS terlebih dahulu.", false);
       return;
     }
-
-    if (response && response.options && response.options.length > 0) {
-      selectEl.innerHTML = ''; // Clear loading
+  
+    chrome.tabs.sendMessage(tab.id, { action: 'get_options' }, (response) => {
+      if (chrome.runtime.lastError) {
+        showStatus("Silakan refresh halaman web.", false);
+        return; 
+      }
+      if (response && response.options) {
+        rawOptions = response.options;
+        renderDropdown();
+      }
+    });
+  
+    // 3. Render Dropdown based on Mode
+    function renderDropdown() {
+      selectEl.innerHTML = '';
       
-      response.options.forEach(opt => {
+      if (rawOptions.length === 0) {
+        const opt = document.createElement('option');
+        opt.text = "Tidak ada data";
+        selectEl.add(opt);
+        selectEl.disabled = true;
+        return;
+      }
+  
+      rawOptions.forEach(item => {
         const option = document.createElement('option');
-        option.value = opt.value;
-        option.text = opt.text;
-        option.selected = opt.selected;
+        option.value = item.value;
+        option.selected = item.selected;
+        
+        let displayText = item.text;
+        const parts = item.text.split('--');
+        
+        if (parts.length >= 2) {
+            const coursePart = parts[0].trim();
+            const lecturerPart = parts[1].trim();
+            
+            if (currentMode === 'dosen') {
+                displayText = lecturerPart;
+            } else if (currentMode === 'matkul') {
+                displayText = coursePart;
+            } else {
+                displayText = item.text; // Both
+            }
+        }
+  
+        option.text = displayText;
         selectEl.appendChild(option);
       });
       selectEl.disabled = false;
-    } else {
-      selectEl.innerHTML = '<option>Tidak ada data dosen/MK ditemukan</option>';
+    }
+  
+    // 4. Action Handlers
+    selectEl.addEventListener('change', () => {
+      chrome.tabs.sendMessage(tab.id, { action: 'select_option', value: selectEl.value });
+    });
+  
+    document.getElementById('fillBtn').addEventListener('click', () => handleAction('fill_max'));
+    document.getElementById('fillRandomBtn').addEventListener('click', () => handleAction('fill_random'));
+  
+    async function handleAction(actionType) {
+        let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        
+        // Determine what to fill based on Mode
+        const fillLecturer = (currentMode === 'dosen' || currentMode === 'both');
+        const fillCourse = (currentMode === 'matkul' || currentMode === 'both');
+
+        if (tab) {
+            chrome.tabs.sendMessage(tab.id, { 
+                action: actionType,
+                config: {
+                    fillLecturer: fillLecturer,
+                    fillCourse: fillCourse
+                }
+            }, (response) => {
+               if (chrome.runtime.lastError) {
+                 showStatus("Error: Refresh halaman.", false);
+               } else {
+                 showStatus(response?.status || "Selesai!", true);
+               }
+            });
+        }
+    }
+
+    function showStatus(msg, isSuccess) {
+        const el = document.getElementById('status');
+        el.innerText = msg;
+        el.className = isSuccess ? 'success' : 'error';
+        el.style.display = 'block';
     }
   });
-
-  // 3. Handle Select Change
-  selectEl.addEventListener('change', () => {
-    const value = selectEl.value;
-    chrome.tabs.sendMessage(tab.id, { action: 'select_option', value: value });
-  });
-
-  // 4. Handle Buttons
-  document.getElementById('fillBtn').addEventListener('click', () => handleAction('fill_max'));
-  document.getElementById('fillRandomBtn').addEventListener('click', () => handleAction('fill_random'));
-});
-
-async function handleAction(actionType) {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: actionType }, (response) => {
-       const statusDiv = document.getElementById('status');
-       if (chrome.runtime.lastError) {
-         statusDiv.innerText = "Error: Refresh halaman.";
-         statusDiv.className = 'status-container status-error';
-       } else {
-         statusDiv.innerText = response?.status || "Selesai!";
-         statusDiv.className = 'status-container status-success';
-       }
-    });
-  }
-}

@@ -55,9 +55,10 @@ function fillForms(mode, config) {
   // Define Sapaan
   const sapaan = config.gender || "Bapak"; // Default Bapak if empty
 
-  // 2. Radio Buttons
+  // 2. Radio Buttons (Likert Scale)
   const radioGroups = {};
   document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    // Collect groups
     if (!radioGroups[radio.name]) radioGroups[radio.name] = [];
     radioGroups[radio.name].push(radio);
   });
@@ -75,9 +76,13 @@ function fillForms(mode, config) {
     }
   });
 
-  // 3. Text Areas (Template Comments)
+  // 3. Text Areas & Auto-Tick Checkbox
   const textAreas = document.querySelectorAll('textarea');
   
+  // Auto-tick the validation checkbox if it exists
+  const chk = document.getElementById('chkPermanent');
+  if (chk) chk.checked = true;
+
   // Template Dosen (Placeholder: {dosen}, {sapaan}, {matkul})
   // {sapaan} akan diganti "Bapak" atau "Ibu" sesuai pilihan dropdown. Tidak akan ada "Bapak/Ibu".
   const lecturerTemplates = [
@@ -107,61 +112,14 @@ function fillForms(mode, config) {
     // 1. Cek Atribut Name/ID langsung
     const nameId = (area.name + " " + area.id).toLowerCase();
     
-    // FIX: Berdasarkan laporan user, mk_kuesioner adalah matkul, dan txtKomentar juga matkul (Saran).
-    // txtKomentar yang ditunjukkan user adalah untuk mata kuliah.
-    if (nameId.includes("mk") || nameId.includes("matkul") || nameId === "txtkomentar") {
+    // FIX STRICT BASED ON HTML: 
+    // <textarea name="txtKomentar" id="txtKomentar"> is UNDER "Komentar untuk Mata Kuliah ini"
+    // So txtKomentar IS COURSE.
+    if (nameId === "txtkomentar" || nameId.includes("txtkomentar")) {
         isCourse = true;
     }
-
-    // 2. Cek Konteks DOM (Traverse Upper Levels)
-    // Berjalan ke atas hingga 4 level (td -> tr -> tbody -> table atau div wrapper)
-    // Mencari kata kunci "Mata Kuliah" di sekitar elemen
-    if (!isCourse) {
-        let current = area;
-        let combinedText = "";
-        
-        for (let i = 0; i < 4; i++) {
-            if (!current) break;
-            
-            // Ambil text dari sibling sebelumnya (biasanya label ada sebelum input)
-            let sibling = current.previousElementSibling;
-            while (sibling) {
-                combinedText += " " + sibling.innerText + " ";
-                sibling = sibling.previousElementSibling;
-            }
-
-            // Ambil text dari parent langsung (barangkali label satu container)
-            if (current.parentElement) {
-                 // Clone untuk avoid performance heavy ops? No, innerText is fine for small depths.
-                 // Hati-hati jangan ambil text dari textarea itu sendiri secara rekursif berlebihan, 
-                 // tapi kita butuh text label disampingnya.
-                 combinedText += " " + current.parentElement.innerText + " ";
-            }
-            
-            current = current.parentElement;
-        }
-        
-        combinedText = combinedText.toLowerCase();
-
-        // Keywords Penentu
-        if (combinedText.includes("mata kuliah") || combinedText.includes("komentar mk")) {
-            isCourse = true;
-        }
-    }
-
-    // 3. Pengecekan Khusus berdasarkan ID `txtKomentar` yang dilaporkan user
-    // Jika ID adalah txtKomentar dan belum terdeteksi, kita coba heuristic tambahan
-    // Biasanya txtKomentar itu generic, tapi jika ada 2 textarea, yang satu pasti txtSaranDosen atau semacamnya.
-    // Jika masih ambigu, biarkan default (Lecturer). 
-    // NAMUN, jika user bilang "gak berubah value nya", berarti script mengira ini 'Lecturer' 
-    // tapi user sedang mode 'Matkul' (atau sebaliknya).
-    // Kita asumsikan defaultnya Lecturer.
-
-    // Cek Config User & Eksekusi
-    // Logic: 
-    // isCourse = TRUE  -> Butuh config.fillCourse = TRUE
-    // isCourse = FALSE -> Butuh config.fillLecturer = TRUE
-
+    
+    // Cek Config User
     if (isCourse && !config.fillCourse) return;
     if (!isCourse && !config.fillLecturer) return;
 

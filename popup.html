@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f9;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #004494;
+    }
+    .secondary {
+      background-color: #6c757d;
+    }
+    .secondary:hover {
+      background-color: #5a6268;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>IPD ITS Auto Filler</h2>
+  <button id="fillBtn">Isi Semua (Sangat Baik)</button>
+  <button id="fillRandomBtn" class="secondary">Isi Acak (Baik/Sangat Baik)</button>
+  <div id="status">Siap digunakan</div>
+  <script src="popup.js"></script>
+</body>
+</html>

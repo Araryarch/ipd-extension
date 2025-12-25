@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "IPD ITS Auto Filler",
+  "version": "1.0",
+  "description": "Ekstensi untuk mengisi kuesioner IPD di akademik.its.ac.id secara otomatis.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://akademik.its.ac.id/ipd_kuesionermk.php*"],
+      "js": ["content.js"]
+    }
+  ]
+}

@@ -1,84 +1,105 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'fill_max') {
-    const count = fillAll('max');
-    sendResponse({ status: `Berhasil mengisi data!` });
-  } else if (request.action === 'fill_random') {
-    const count = fillAll('random');
-    sendResponse({ status: `Berhasil mengisi data secara acak positif!` });
+  if (request.action === 'get_options') {
+    // Target spesifik elemen select yang diberikan user
+    const select = document.getElementById('mk_kuesioner');
+    
+    if (select) {
+      const options = Array.from(select.options).map(opt => ({
+        value: opt.value,
+        text: opt.text.trim(),
+        selected: opt.selected
+      })).filter(o => o.value !== ""); // Filter opsi kosong
+      
+      sendResponse({ options: options });
+    } else {
+      sendResponse({ options: [] });
+    }
+  } 
+  
+  else if (request.action === 'select_option') {
+    const select = document.getElementById('mk_kuesioner');
+    if (select) {
+      select.value = request.value;
+      // Trigger event change agar script page (MKChange()) jalan
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      sendResponse({ status: 'Sedang memuat data...' });
+    }
+  }
+
+  else if (request.action === 'fill_max' || request.action === 'fill_random') {
+    const mode = request.action === 'fill_max' ? 'max' : 'random';
+    fillForms(mode);
+    sendResponse({ status: 'Form berhasil diisi!' });
   }
 });
 
-function fillAll(mode) {
-  // 1. Handle Select Options (Dosen / MK)
-  // Menangani dropbox pilihan dosen/mk jika belum terpilih
-  const selects = document.querySelectorAll('select');
-  selects.forEach(select => {
-    // Jika masih di index 0 (biasanya "Pilih..." atau kosong), pilih opsi ke-1 (index 1) which is usually the first lecturer
-    if (select.selectedIndex === 0 && select.options.length > 1) {
-      select.selectedIndex = 1; // Pilih opsi pertama yang valid
-      
-      // Trigger event change agar website 'sadar' ada perubahan (penting untuk website modern/php legacy yg pake onchange)
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  });
-
-  // 2. Handle Radio Buttons (Skala Likert)
+function fillForms(mode) {
+  // 1. Radio Buttons (Likert Scale)
   const radioGroups = {};
-  const radios = document.querySelectorAll('input[type="radio"]');
-
-  radios.forEach(radio => {
-    if (!radioGroups[radio.name]) {
-      radioGroups[radio.name] = [];
-    }
+  document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    if (!radioGroups[radio.name]) radioGroups[radio.name] = [];
     radioGroups[radio.name].push(radio);
   });
 
   Object.keys(radioGroups).forEach(name => {
     const group = radioGroups[name];
     if (group.length > 0) {
+      // Sort DESCENDING by value check (4 > 3 > 2 > 1)
+      group.sort((a, b) => (parseFloat(b.value) || 0) - (parseFloat(a.value) || 0));
+      
       if (mode === 'max') {
-        // Sort DESCENDING by value (asumsi value besar = bagus, misal 4 atau 5)
-        // Kadang value="4.00" atau value="4"
-        group.sort((a, b) => {
-           const valA = parseFloat(a.value) || 0;
-           const valB = parseFloat(b.value) || 0;
-           return valB - valA;
-        });
-        // Select yang paling besar valuesnya
         group[0].checked = true;
-      } else if (mode === 'random') {
-        // Ambil 2 terbaik (misal 3 dan 4 dari skala 4)
-        const sorted = group.sort((a, b) => {
-            const valA = parseFloat(a.value) || 0;
-            const valB = parseFloat(b.value) || 0;
-            return valB - valA;
-         });
-        const topChoices = sorted.slice(0, 2);
-        const choice = topChoices[Math.floor(Math.random() * topChoices.length)];
+      } else {
+        // Random top 2
+        const choice = group.slice(0, 2)[Math.floor(Math.random() * Math.min(2, group.length))];
         choice.checked = true;
       }
     }
   });
 
-  // 3. Handle Text Areas (Saran/Komentar)
+  // 2. Text Areas (Smart Comments)
   const textAreas = document.querySelectorAll('textarea');
   
-  // Koleksi komentar yang sopan, panjang, dan konstruktif
-  const positiveComments = [
-    "Penyampaian materi kuliah selama satu semester ini sudah sangat baik, terstruktur, dan mudah dipahami. Dosen mampu menjelaskan konsep-konsep yang sulit dengan analogi yang relevan. Terima kasih atas dedikasi Bapak/Ibu dalam mengajar kami.",
-    "Secara keseluruhan, metode pengajaran yang diterapkan sangat efektif dan interaktif. Dosen memberikan kesempatan yang cukup bagi mahasiswa untuk bertanya dan berdiskusi. Materi yang disampaikan juga sangat relevan dengan perkembangan terkini.",
-    "Saya sangat mengapresiasi kedisiplinan dan profesionalisme dosen dalam mengajar. Materi disampaikan dengan jelas dan runtut. Semoga kualitas pengajaran yang sangat baik ini dapat terus dipertahankan ke depannya.",
-    "Dosen memiliki penguasaan materi yang sangat mendalam dan mampu membangkitkan motivasi belajar mahasiswa. Penjelasan di kelas sangat komprehensif. Terima kasih banyak atas bimbingannya.",
-    "Proses pembelajaran berjalan dengan sangat kondusif. Dosen sangat komunikatif dan responsif terhadap pertanyaan mahasiswa. Materi perkuliahan tersampaikan dengan sangat baik dan jelas."
+  const commentsLecturer = [
+    "Penyampaian materi sangat jelas, terstruktur, dan mudah dipahami. Dosen sangat menguasai materi.",
+    "Metode pengajaran beliau sangat efektif dan interaktif, membuat mahasiswa bersemangat mengikuti perkuliahan.",
+    "Dosen sangat disiplin waktu dan memberikan feedback yang konstruktif terhadap tugas mahasiswa.",
+    "Penjelasan konsep-konsep sulit disampaikan dengan analogi yang sederhana sehingga mudah dimengerti.",
+    "Sangat mengapresiasi dedikasi Bapak/Ibu dalam membimbing kami selama satu semester ini."
+  ];
+
+  const commentsCourse = [
+    "Materi mata kuliah ini sangat relevan dengan kebutuhan industri saat ini dan tertata dengan rapi.",
+    "Silabus perkuliahan sangat jelas, dan beban tugas yang diberikan seimbang dengan bobot SKS.",
+    "Mata kuliah ini memberikan wawasan baru yang sangat bermanfaat bagi pengembangan kompetensi mahasiswa.",
+    "Resource pembelajaran (slide/modul) yang disediakan sangat lengkap dan membantu proses belajar mandiri.",
+    "Topik-topik yang dibahas sangat menarik dan menantang, memicu kemampuan berpikir kritis."
   ];
 
   textAreas.forEach(area => {
-    // Hanya isi jika kosong agar tidak menimpa tulisan manual user
+    // Heuristic: Check context nearby to detect if it's for MK or Dosen
+    let isCourse = false;
+    
+    // Ambil text dari parent element (biasanya <td>) dan element sebelumnya (label/header)
+    const parent = area.parentElement;
+    const previousSibling = parent ? parent.previousElementSibling : null;
+    
+    const textContext = (
+        (parent ? parent.innerText : "") + " " + 
+        (previousSibling ? previousSibling.innerText : "")
+    ).toLowerCase();
+
+    // Keywords penentu
+    if (textContext.includes("komentar untuk mata kuliah") || 
+        textContext.includes("saran untuk mata kuliah") || 
+        textContext.includes("tentang mata kuliah") ||
+        area.name.toLowerCase().includes("mk_saran")) {
+        isCourse = true;
+    }
+
     if (!area.value || area.value.trim() === "") {
-        const randomComment = positiveComments[Math.floor(Math.random() * positiveComments.length)];
-        area.value = randomComment;
+       const source = isCourse ? commentsCourse : commentsLecturer;
+       area.value = source[Math.floor(Math.random() * source.length)];
     }
   });
-  
-  return true;
 }

@@ -5,16 +5,16 @@
   <title>IPD Auto Filler</title>
   <style>
     :root {
-      --primary-color: #013880; /* ITS Blue ish */
+      --primary-color: #013880;
       --primary-hover: #00265a;
-      --accent-color: #f7b500; /* ITS Yellow ish */
+      --accent-color: #f7b500;
       --bg-color: #f8f9fa;
       --text-color: #212529;
       --card-bg: #ffffff;
     }
 
     body {
-      width: 320px;
+      width: 340px;
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -23,7 +23,7 @@
     }
 
     .container {
-      padding: 20px;
+      padding: 15px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -32,7 +32,7 @@
     .header {
       width: 100%;
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       border-bottom: 2px solid #e9ecef;
       padding-bottom: 15px;
     }
@@ -42,108 +42,94 @@
       font-weight: 700;
       margin: 0;
       color: var(--primary-color);
-      letter-spacing: -0.5px;
-    }
-
-    p.subtitle {
-      font-size: 12px;
-      color: #6c757d;
-      margin: 5px 0 0 0;
     }
 
     .card {
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 4px;
+      padding: 15px;
       width: 100%;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ced4da;
+      font-size: 13px;
+      background-color: white;
+      cursor: pointer;
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis; 
+      max-width: 300px;
+    }
+
+    select:disabled {
+      background-color: #e9ecef;
+      cursor: not-allowed;
     }
 
     button {
       width: 100%;
-      padding: 12px 16px;
+      padding: 12px;
       border: none;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       margin-bottom: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    button:last-child {
-      margin-bottom: 0;
     }
 
     #fillBtn {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+      background: var(--primary-color);
       color: white;
-      box-shadow: 0 4px 6px rgba(1, 56, 128, 0.2);
     }
-
-    #fillBtn:hover {
-      background: linear-gradient(135deg, var(--primary-hover) 0%, #004494 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 10px rgba(1, 56, 128, 0.25);
-    }
-
-    #fillBtn:active {
-      transform: translateY(1px);
-    }
+    #fillBtn:hover { background: var(--primary-hover); }
 
     #fillRandomBtn {
-      background-color: white;
+      background: white;
+      border: 1px solid #ced4da;
       color: #495057;
-      border: 1px solid #dee2e6;
     }
-
-    #fillRandomBtn:hover {
-      background-color: #f8f9fa;
-      border-color: #cdd4da;
-      color: #212529;
-    }
+    #fillRandomBtn:hover { background: #f1f3f5; }
 
     .status-container {
-      margin-top: 15px;
       padding: 10px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       width: 100%;
-      box-sizing: border-box;
       text-align: center;
       display: none;
+      box-sizing: border-box;
     }
-
-    .status-success {
-      background-color: #d4edda;
-      color: #155724;
-      display: block;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .status-error {
-      background-color: #f8d7da;
-      color: #721c24;
-      display: block;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .status-success { background: #d4edda; color: #155724; display: block; }
+    .status-error { background: #f8d7da; color: #721c24; display: block; }
 
     .footer {
-      margin-top: 20px;
-      font-size: 11px;
-      color: #adb5bd;
-      text-align: center;
+      margin-top: 10px;
+      font-size: 10px;
+      color: #ccc;
     }
   </style>
 </head>
@@ -151,25 +137,23 @@
   <div class="container">
     <div class="header">
       <h1>IPD Auto Filler</h1>
-      <p class="subtitle">Otomatisasi Kuesioner Akademik ITS</p>
     </div>
 
+    <!-- Pilihan Dosen Scraped -->
     <div class="card">
-      <div style="padding: 15px;">
-        <button id="fillBtn">
-          <span>✨</span> Isi Kuesioner (Sangat Baik)
-        </button>
-        <button id="fillRandomBtn">
-          <span>🎲</span> Isi Acak (Baik - Sangat Baik)
-        </button>
+      <div class="form-group">
+        <label for="lecturerSelect">Pilih Dosen / Mata Kuliah:</label>
+        <select id="lecturerSelect" disabled>
+          <option>Memuat data...</option>
+        </select>
       </div>
+
+      <button id="fillBtn">✨ Isi Semua (Sangat Baik)</button>
+      <button id="fillRandomBtn">🎲 Isi Acak (Baik/Sangat Baik)</button>
     </div>
 
     <div id="status" class="status-container"></div>
-
-    <div class="footer">
-      Powered by Antigravity
-    </div>
+    <div class="footer">Powered by Antigravity</div>
   </div>
   <script src="popup.js"></script>
 </body>
